@@ -51,61 +51,44 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.UserControllers = void 0;
+exports.ImageRepository = void 0;
 var inversify_1 = require("inversify");
 var inversify_express_utils_1 = require("inversify-express-utils");
+var multer_1 = __importDefault(require("multer"));
 var types_1 = __importDefault(require("../../config/types"));
-var httpResponse_helpers_1 = require("../helpers/httpResponse.helpers");
-var user_service_1 = require("../services/user.service");
-var UserControllers = /** @class */ (function () {
-    function UserControllers(userService) {
-        this.userService = userService;
+var authenticate_decorator_1 = require("../decorators/authenticate.decorator");
+var fileHandler_1 = require("../middlewares/fileHandler");
+var imageRepository_service_1 = require("../services/imageRepository.service");
+var uplaod = multer_1.default();
+var ImageRepository = /** @class */ (function () {
+    function ImageRepository(_imageRepoService) {
+        this._imageRepoService = _imageRepoService;
     }
-    UserControllers.prototype.userSignup = function (req, res) {
+    ImageRepository.prototype.upload = function (req, res) {
         return __awaiter(this, void 0, void 0, function () {
             var result;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.userService.userSignup(req.body)];
+                    case 0: return [4 /*yield*/, this._imageRepoService.addImages(req.body)];
                     case 1:
                         result = _a.sent();
-                        return [2 /*return*/, httpResponse_helpers_1.httpResponse(res, result)];
-                }
-            });
-        });
-    };
-    UserControllers.prototype.userLogin = function (req, res) {
-        return __awaiter(this, void 0, void 0, function () {
-            var _a, email, password, result;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
-                    case 0:
-                        _a = req.body, email = _a.email, password = _a.password;
-                        return [4 /*yield*/, this.userService.userLogin(email, password)];
-                    case 1:
-                        result = _b.sent();
-                        return [2 /*return*/, httpResponse_helpers_1.httpResponse(res, result)];
+                        return [2 /*return*/, result];
                 }
             });
         });
     };
     __decorate([
-        inversify_express_utils_1.httpPost('/signup'),
+        inversify_express_utils_1.httpPost('/', uplaod.single('image'), fileHandler_1.fileHandler),
+        authenticate_decorator_1.authenticate({}),
         __metadata("design:type", Function),
         __metadata("design:paramtypes", [Object, Object]),
         __metadata("design:returntype", Promise)
-    ], UserControllers.prototype, "userSignup", null);
-    __decorate([
-        inversify_express_utils_1.httpPost('/login'),
-        __metadata("design:type", Function),
-        __metadata("design:paramtypes", [Object, Object]),
-        __metadata("design:returntype", Promise)
-    ], UserControllers.prototype, "userLogin", null);
-    UserControllers = __decorate([
-        inversify_express_utils_1.controller('/api/v1/users'),
-        __param(0, inversify_1.inject(types_1.default.UserService)),
-        __metadata("design:paramtypes", [user_service_1.UserService])
-    ], UserControllers);
-    return UserControllers;
+    ], ImageRepository.prototype, "upload", null);
+    ImageRepository = __decorate([
+        inversify_express_utils_1.controller('/api/v1/repo'),
+        __param(0, inversify_1.inject(types_1.default.ImageRepoService)),
+        __metadata("design:paramtypes", [imageRepository_service_1.ImageRepositoryService])
+    ], ImageRepository);
+    return ImageRepository;
 }());
-exports.UserControllers = UserControllers;
+exports.ImageRepository = ImageRepository;

@@ -51,61 +51,90 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.UserControllers = void 0;
+exports.ImageRepositoryService = void 0;
+var http_errors_1 = require("http-errors");
 var inversify_1 = require("inversify");
-var inversify_express_utils_1 = require("inversify-express-utils");
 var types_1 = __importDefault(require("../../config/types"));
-var httpResponse_helpers_1 = require("../helpers/httpResponse.helpers");
-var user_service_1 = require("../services/user.service");
-var UserControllers = /** @class */ (function () {
-    function UserControllers(userService) {
-        this.userService = userService;
+var image_repo_repository_1 = require("../repository/image-repo.repository");
+var awsFileuploader_service_1 = require("./awsFileuploader.service");
+var ImageRepositoryService = /** @class */ (function () {
+    function ImageRepositoryService(_awsFileUpload, _repo) {
+        this._awsFileUpload = _awsFileUpload;
+        this._repo = _repo;
     }
-    UserControllers.prototype.userSignup = function (req, res) {
+    ImageRepositoryService.prototype.addImages = function (data) {
         return __awaiter(this, void 0, void 0, function () {
-            var result;
+            var userId, fileDetails, saveImage, error_1;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.userService.userSignup(req.body)];
-                    case 1:
-                        result = _a.sent();
-                        return [2 /*return*/, httpResponse_helpers_1.httpResponse(res, result)];
-                }
-            });
-        });
-    };
-    UserControllers.prototype.userLogin = function (req, res) {
-        return __awaiter(this, void 0, void 0, function () {
-            var _a, email, password, result;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
                     case 0:
-                        _a = req.body, email = _a.email, password = _a.password;
-                        return [4 /*yield*/, this.userService.userLogin(email, password)];
+                        _a.trys.push([0, 3, , 4]);
+                        userId = data.userId;
+                        return [4 /*yield*/, this.upload(data)];
                     case 1:
-                        result = _b.sent();
-                        return [2 /*return*/, httpResponse_helpers_1.httpResponse(res, result)];
+                        fileDetails = _a.sent();
+                        return [4 /*yield*/, this._repo.create({
+                                imagePath: fileDetails.path,
+                                imageName: fileDetails.name,
+                                owner: userId,
+                                private: data.private ? true : false
+                            })];
+                    case 2:
+                        saveImage = _a.sent();
+                        if (!saveImage) {
+                            throw new http_errors_1.InternalServerError('Unable to save the file details to the db');
+                        }
+                        return [2 /*return*/, {
+                                status: true,
+                                message: 'Your image has been saved successfully',
+                                data: saveImage,
+                                error: null
+                            }];
+                    case 3:
+                        error_1 = _a.sent();
+                        return [2 /*return*/, {
+                                status: false,
+                                message: error_1.message || 'Error occured while adding the image',
+                                data: {},
+                                error: error_1
+                            }];
+                    case 4: return [2 /*return*/];
                 }
             });
         });
     };
-    __decorate([
-        inversify_express_utils_1.httpPost('/signup'),
-        __metadata("design:type", Function),
-        __metadata("design:paramtypes", [Object, Object]),
-        __metadata("design:returntype", Promise)
-    ], UserControllers.prototype, "userSignup", null);
-    __decorate([
-        inversify_express_utils_1.httpPost('/login'),
-        __metadata("design:type", Function),
-        __metadata("design:paramtypes", [Object, Object]),
-        __metadata("design:returntype", Promise)
-    ], UserControllers.prototype, "userLogin", null);
-    UserControllers = __decorate([
-        inversify_express_utils_1.controller('/api/v1/users'),
-        __param(0, inversify_1.inject(types_1.default.UserService)),
-        __metadata("design:paramtypes", [user_service_1.UserService])
-    ], UserControllers);
-    return UserControllers;
+    ImageRepositoryService.prototype.upload = function (data) {
+        return __awaiter(this, void 0, void 0, function () {
+            var filePath, error_2;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        _a.trys.push([0, 2, , 3]);
+                        return [4 /*yield*/, this._awsFileUpload.upload(data)];
+                    case 1:
+                        filePath = _a.sent();
+                        console.log(filePath);
+                        if (!filePath) {
+                            throw Error('unable to upload image');
+                        }
+                        return [2 /*return*/, filePath];
+                    case 2:
+                        error_2 = _a.sent();
+                        return [2 /*return*/, {
+                                error: 'Error occured during image upload',
+                                data: null
+                            }];
+                    case 3: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    ImageRepositoryService = __decorate([
+        inversify_1.injectable(),
+        __param(0, inversify_1.inject(types_1.default.AWSFileUploader)),
+        __param(1, inversify_1.inject(types_1.default.ImageRepoRepository)),
+        __metadata("design:paramtypes", [awsFileuploader_service_1.AWSFileUploader, image_repo_repository_1.ImageRepoRepository])
+    ], ImageRepositoryService);
+    return ImageRepositoryService;
 }());
-exports.UserControllers = UserControllers;
+exports.ImageRepositoryService = ImageRepositoryService;

@@ -155,7 +155,6 @@ var EmailSendingService = /** @class */ (function () {
                     case 0:
                         _a.trys.push([0, 2, , 3]);
                         URL = config_1.default.server.emailServiceUrl;
-                        console.log(URL);
                         return [4 /*yield*/, axios_1.default.post(URL, __assign({}, data))];
                     case 1:
                         response = _a.sent();

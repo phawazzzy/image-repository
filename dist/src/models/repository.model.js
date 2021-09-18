@@ -24,26 +24,29 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.UserModel = void 0;
+exports.ImageRepoModel = void 0;
 var inversify_1 = require("inversify");
 var mongoose_1 = __importStar(require("mongoose"));
-var UserSchema = new mongoose_1.Schema({
-    firstName: { type: String, required: true },
-    email: { type: String, required: true },
-    password: { type: String, required: true },
-    isVerified: { type: Boolean, default: false }
+var model_names_1 = __importDefault(require("../../config/model-names"));
+var imageRepoSchema = new mongoose_1.Schema({
+    imagePath: { type: String, required: true },
+    imageName: { type: String, required: true },
+    owner: { type: mongoose_1.Schema.Types.ObjectId, ref: 'users', required: true },
+    private: { type: Boolean, default: false }
 }, { timestamps: true });
-UserSchema.index({ email: 1 });
-var UserModel = /** @class */ (function () {
-    function UserModel() {
+var ImageRepoModel = /** @class */ (function () {
+    function ImageRepoModel() {
     }
-    UserModel.prototype.model = function () {
-        return mongoose_1.default.model('User', UserSchema);
+    ImageRepoModel.prototype.model = function () {
+        return mongoose_1.default.model(model_names_1.default.imageModel, imageRepoSchema);
     };
-    UserModel = __decorate([
+    ImageRepoModel = __decorate([
         inversify_1.injectable()
-    ], UserModel);
-    return UserModel;
+    ], ImageRepoModel);
+    return ImageRepoModel;
 }());
-exports.UserModel = UserModel;
+exports.ImageRepoModel = ImageRepoModel;

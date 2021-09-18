@@ -58,7 +58,7 @@ var repository_1 = require("../repository");
 var http_errors_1 = require("http-errors");
 var hash_service_1 = require("./hash.service");
 var otp_service_1 = require("./otp.service");
-var email_service_1 = require("./email.service");
+var jwt_service_1 = require("./jwt.service");
 var UserService = /** @class */ (function () {
     function UserService(_repo, _otpService) {
         this._repo = _repo;
@@ -66,29 +66,23 @@ var UserService = /** @class */ (function () {
     }
     UserService.prototype.userSignup = function (data) {
         return __awaiter(this, void 0, void 0, function () {
-            var firstName, lastName, email, phoneNumber, password, user, passwordHash, createUser, error_1;
+            var firstName, email, password, user, passwordHash, createUser, error_1;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        _a.trys.push([0, 7, , 8]);
-                        firstName = data.firstName, lastName = data.lastName, email = data.email, phoneNumber = data.phoneNumber, password = data.password;
+                        _a.trys.push([0, 4, , 5]);
+                        firstName = data.firstName, email = data.email, password = data.password;
                         return [4 /*yield*/, this._repo.findOne({ email: email })];
                     case 1:
                         user = _a.sent();
-                        if (!user) return [3 /*break*/, 4];
-                        if (!!this.userIsVerified(user)) return [3 /*break*/, 3];
-                        return [4 /*yield*/, this.sendRegistrationOtp(user.email, user.firstName)];
+                        if (user) {
+                            throw new http_errors_1.Conflict('Email exist');
+                        }
+                        return [4 /*yield*/, hash_service_1.HashService.hashPassword(password)];
                     case 2:
-                        _a.sent();
-                        throw new http_errors_1.Conflict('Email already exist please check your email to verify');
-                    case 3: 
-                    // check if user has verified account
-                    throw new http_errors_1.Conflict('Email exist');
-                    case 4: return [4 /*yield*/, hash_service_1.HashService.hashPassword(password)];
-                    case 5:
                         passwordHash = _a.sent();
-                        return [4 /*yield*/, this._repo.create({ firstName: firstName, lastName: lastName, email: email, phoneNumber: phoneNumber, password: passwordHash })];
-                    case 6:
+                        return [4 /*yield*/, this._repo.create({ firstName: firstName, email: email, password: passwordHash })];
+                    case 3:
                         createUser = _a.sent();
                         if (!createUser) {
                             throw new http_errors_1.InternalServerError("Unable to save user's data");
@@ -100,7 +94,7 @@ var UserService = /** @class */ (function () {
                                 data: createUser,
                                 error: null
                             }];
-                    case 7:
+                    case 4:
                         error_1 = _a.sent();
                         return [2 /*return*/, {
                                 status: false,
@@ -108,35 +102,66 @@ var UserService = /** @class */ (function () {
                                 message: error_1.message || 'Internal server error',
                                 error: error_1
                             }];
-                    case 8: return [2 /*return*/];
+                    case 5: return [2 /*return*/];
                 }
             });
         });
     };
-    UserService.prototype.sendRegistrationOtp = function (email, firstName) {
+    // async sendRegistrationOtp(email: string, firstName: string) {
+    //     try {
+    //         const code = await this._otpService.createOtp(email);
+    //         await EmailSendingService.sendRegistrationCode(firstName, email, code);
+    //     } catch (error) {}
+    // }
+    // userIsVerified(userData: any) {
+    //     return userData.verified == 'true' || userData.verified == true;
+    // }
+    UserService.prototype.userLogin = function (email, password) {
         return __awaiter(this, void 0, void 0, function () {
-            var code, error_2;
+            var user, passwordValid, token, error_2;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        _a.trys.push([0, 3, , 4]);
-                        return [4 /*yield*/, this._otpService.createOtp(email)];
+                        _a.trys.push([0, 4, , 5]);
+                        return [4 /*yield*/, this._repo.findOne({ email: email })];
                     case 1:
-                        code = _a.sent();
-                        return [4 /*yield*/, email_service_1.EmailSendingService.sendRegistrationCode(firstName, email, code)];
+                        user = _a.sent();
+                        if (!user) {
+                            throw new http_errors_1.Unauthorized('Wrong credentials');
+                        }
+                        return [4 /*yield*/, hash_service_1.HashService.isPasswordValid(user.password, password)];
                     case 2:
-                        _a.sent();
-                        return [3 /*break*/, 4];
+                        passwordValid = _a.sent();
+                        if (!passwordValid) {
+                            throw new http_errors_1.Unauthorized('Wrong credentials');
+                        }
+                        return [4 /*yield*/, jwt_service_1.JWTService.generateToken({ userId: user._id })];
                     case 3:
+                        token = _a.sent();
+                        return [2 /*return*/, {
+                                status: true,
+                                statusCode: 200,
+                                data: {
+                                    email: user.email,
+                                    firstName: user.firstName,
+                                    token: token
+                                },
+                                message: 'Authentication successful',
+                                error: null
+                            }];
+                    case 4:
                         error_2 = _a.sent();
-                        return [3 /*break*/, 4];
-                    case 4: return [2 /*return*/];
+                        return [2 /*return*/, {
+                                status: false,
+                                statusCode: error_2.status || 400,
+                                data: null,
+                                message: error_2.message,
+                                error: error_2
+                            }];
+                    case 5: return [2 /*return*/];
                 }
             });
         });
-    };
-    UserService.prototype.userIsVerified = function (userData) {
-        return userData.verified == 'true' || userData.verified == true;
     };
     UserService = __decorate([
         inversify_1.injectable(),
