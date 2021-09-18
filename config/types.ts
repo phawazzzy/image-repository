@@ -12,7 +12,10 @@ const TYPES = {
     OtpRepository: Symbol.for('OtpRepository'),
     OtpService: Symbol.for('OtpService'),
     ReferralRepositry: Symbol.for('ReferralRepositry'),
-    ReferralService: Symbol.for('ReferralService')
+    ReferralService: Symbol.for('ReferralService'),
+    AWSFileUploader: Symbol.for('AWSFileUploader'),
+    ImageRepoService: Symbol.for('ImageRepository'),
+    ImageRepoRepository: Symbol.for('ImageRepoRepository')
 };
 
 export default TYPES;

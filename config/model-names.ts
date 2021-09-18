@@ -1,3 +1,4 @@
 export default {
-    usermodel: 'user'
+    usermodel: 'user',
+    imageModel: 'image-repo'
 };
