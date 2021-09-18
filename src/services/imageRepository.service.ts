@@ -21,7 +21,7 @@ export class ImageRepositoryService {
 
     async upload(data: any) {
         try {
-            const userId = '';
+            const userId = data.userId;
             const filePath = await this._awsFileUpload.upload(data);
             console.log(filePath);
             if (!filePath) {
