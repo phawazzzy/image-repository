@@ -32,7 +32,7 @@ export class AWSFileUploader implements FileUploader {
     private async uploadFileToS3(file: File): Promise<UploadedFile> {
         const timestamp = Date.now();
         const fileKey = this.generateFileKey(file, timestamp);
-        await this.client
+        const hi = await this.client
             .putObject({
                 Bucket: this.bucketName,
                 Key: fileKey,
@@ -41,8 +41,9 @@ export class AWSFileUploader implements FileUploader {
                 ACL: 'public-read'
             })
             .promise();
-
+        console.log(hi);
         return {
+            url: `https://revie.s3.amazonaws.com/${fileKey}`,
             path: `${this.bucketName}/${fileKey}`,
             name: fileKey
         };
@@ -50,7 +51,9 @@ export class AWSFileUploader implements FileUploader {
 
     async upload(files: File): Promise<UploadedFile | undefined> {
         try {
-            return await this.uploadFileToS3(files);
+            const fileDetails = await this.uploadFileToS3(files);
+            // return await this.uploadFileToS3(files);
+            return fileDetails;
         } catch (error) {
             console.log('error', error);
             return undefined;
