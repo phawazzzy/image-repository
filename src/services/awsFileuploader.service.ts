@@ -83,9 +83,8 @@ export class AWSFileUploader implements FileUploader {
 
     async upload(files: File): Promise<UploadedFile | undefined> {
         try {
-            const fileDetails = await this.uploadFileToCloudinary(files);
+            return await this.uploadFileToCloudinary(files);
             // return await this.uploadFileToS3(files);
-            return fileDetails;
         } catch (error) {
             console.log('error', error);
             return undefined;

@@ -1,8 +1,9 @@
 import { Request, Response } from 'express';
 import config from '../../config';
 import logging from '../../config/logging';
-// import { AuthService } from '../services/auth.service';
 import { JWTService } from '../services/jwt.service';
+
+const NAMESPACE = 'Authenticate decorator';
 
 export function authenticate(options: any) {
     return (_: any, __: PropertyKey, descriptor: TypedPropertyDescriptor<any>) => {
@@ -21,10 +22,8 @@ export function authenticate(options: any) {
                 const headerSplit = authorizationHeaders!.split('Bearer');
                 if (headerSplit.length === 2) {
                     return new Promise(async (resolve, _) => {
-                        // AuthService.callAuthService({ url: `${config.server.authService}/api/verify-jwt`, token: headerSplit[1] })
                         await JWTService.decodeToken(headerSplit[1].trim())
                             .then((resp) => {
-                                console.log(resp);
                                 userId = (<any>resp).userId;
                                 req.body.userId = userId;
                                 // try {
@@ -39,7 +38,8 @@ export function authenticate(options: any) {
                     });
                 }
             } catch (error) {
-                console.log(error);
+                // console.log(error);
+                logging.error(NAMESPACE, '', error);
             }
             return res.status(401).json(responseObject);
         };
