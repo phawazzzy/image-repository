@@ -9,22 +9,35 @@ export class ImageRepositoryService {
     constructor(@inject(TYPES.AWSFileUploader) private _awsFileUpload: AWSFileUploader, @inject(TYPES.ImageRepoRepository) private _repo: ImageRepoRepository) {}
 
     async addImages(data: any) {
+        // console.log(data);
         try {
             const userId = data.userId;
-            const fileDetails: any = await this.upload(data);
-            const saveImage = await this._repo.create({
-                imagePath: fileDetails.path,
-                imageName: fileDetails.name,
-                owner: userId,
-                private: data.private ? true : false
-            });
-            if (!saveImage) {
-                throw new InternalServerError('Unable to save the file details to the db');
+            const listOfImages = [];
+
+            for (let i = 0; i < data.files.length; i++) {
+                //TODO
+                // check mime type before uploading
+                const fileDetails: any = await this.upload(data.files[i]);
+                if (!fileDetails) {
+                    continue;
+                }
+                const saveImage = await this._repo.create({
+                    imagePath: fileDetails.path,
+                    imageName: fileDetails.name,
+                    owner: userId,
+                    private: data.private ? true : false
+                });
+
+                if (!saveImage) {
+                    throw new InternalServerError('Unable to save the file details to the db');
+                }
+                listOfImages.push(saveImage);
             }
+
             return {
                 status: true,
-                message: 'Your image has been saved successfully',
-                data: saveImage,
+                message: 'Your images has been saved successfully',
+                data: listOfImages,
                 error: null
             };
         } catch (error: any) {
@@ -39,9 +52,7 @@ export class ImageRepositoryService {
 
     async upload(data: any) {
         try {
-            // const userId = data.userId;
             const filePath = await this._awsFileUpload.upload(data);
-            console.log(filePath);
             if (!filePath) {
                 throw Error('unable to upload image');
             }

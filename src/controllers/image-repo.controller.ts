@@ -13,7 +13,7 @@ const uplaod = multer();
 export class ImageRepository {
     constructor(@inject(TYPES.ImageRepoService) private _imageRepoService: ImageRepositoryService) {}
 
-    @httpPost('/', uplaod.single('image'), fileHandler)
+    @httpPost('/', uplaod.array('image', 100), fileHandler)
     @authenticate({})
     async upload(req: Request, res: Response) {
         const result = await this._imageRepoService.addImages(req.body);
