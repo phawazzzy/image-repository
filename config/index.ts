@@ -12,6 +12,7 @@ const DEFUALT_REGION = process.env.REGION || 'us-east-2';
 const CLOUD_NAME = process.env.CLOUD_NAME || '';
 const CLOUD_KEY = process.env.CLOUD_KEY || '';
 const CLOUD_SECRET = process.env.CLOUD_SECRET || '';
+const JWT_SECRET = process.env.JWT_SECRET || '$this$is$a$secret';
 
 const SERVER = {
     port: SERVER_PORT,
@@ -24,7 +25,8 @@ const SERVER = {
     defaultRegion: DEFUALT_REGION,
     cloud_name: CLOUD_NAME,
     cloud_key: CLOUD_KEY,
-    cloud_secret: CLOUD_SECRET
+    cloud_secret: CLOUD_SECRET,
+    jwtSecret: JWT_SECRET
 };
 
 const config = {

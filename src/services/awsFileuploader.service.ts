@@ -2,6 +2,8 @@ import { File, FileUploader, UploadedFile } from '../interfaces/file.interface';
 import { S3 } from 'aws-sdk';
 import config from '../../config';
 import { injectable } from 'inversify';
+import cloudinary from 'cloudinary';
+import streamifier from 'streamifier';
 
 @injectable()
 export class AWSFileUploader implements FileUploader {
@@ -18,11 +20,11 @@ export class AWSFileUploader implements FileUploader {
          * cloudinary config
          */
 
-        // cloudinary.v2.config({
-        //     cloud_name: config.server.cloud_name,
-        //     api_key: config.server.cloud_key,
-        //     api_secret: config.server.cloud_secret
-        // });
+        cloudinary.v2.config({
+            cloud_name: config.server.cloud_name,
+            api_key: config.server.cloud_key,
+            api_secret: config.server.cloud_secret
+        });
     }
 
     private generateFileKey(file: File, timestamp: number): string {
@@ -49,9 +51,39 @@ export class AWSFileUploader implements FileUploader {
         };
     }
 
+    private async uploadFileToCloudinary(file: File): Promise<UploadedFile> {
+        return new Promise((resolve, reject) => {
+            let cldUploadStream = cloudinary.v2.uploader.upload_stream(
+                {
+                    folder: 'shopify-challenge'
+                },
+                async function (error, result) {
+                    if (result) {
+                        resolve({
+                            path: result.url,
+                            name: result.public_id
+                        });
+                    } else {
+                        reject(error);
+                    }
+                }
+            );
+            streamifier.createReadStream(this.toBuffer(file.content)).pipe(cldUploadStream);
+        });
+    }
+
+    private toBuffer(arrayBuffer: ArrayBuffer) {
+        const buf = Buffer.alloc(arrayBuffer.byteLength);
+        const view = new Uint8Array(arrayBuffer);
+        for (var i = 0; i < buf.length; ++i) {
+            buf[i] = view[i];
+        }
+        return buf;
+    }
+
     async upload(files: File): Promise<UploadedFile | undefined> {
         try {
-            const fileDetails = await this.uploadFileToS3(files);
+            const fileDetails = await this.uploadFileToCloudinary(files);
             // return await this.uploadFileToS3(files);
             return fileDetails;
         } catch (error) {

@@ -17,7 +17,7 @@ export interface FileUpload {
 export interface UploadedFile {
     name: string;
     path: string;
-    url: string;
+    url?: string;
 }
 
 export interface FileUploader {

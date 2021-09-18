@@ -14,4 +14,10 @@ export class UserControllers {
         const result = await this.userService.userSignup(req.body);
         return httpResponse(res, result);
     }
+    @httpPost('/login')
+    async userLogin(req: Request, res: Response) {
+        const { email, password } = req.body;
+        const result = await this.userService.userLogin(email, password);
+        return httpResponse(res, result);
+    }
 }
