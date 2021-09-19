@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { inject } from 'inversify';
-import { controller, httpPost } from 'inversify-express-utils';
+import { controller, httpDelete, httpGet, httpPost } from 'inversify-express-utils';
 import multer from 'multer';
 import TYPES from '../../config/types';
 import { authenticate } from '../decorators/authenticate.decorator';
@@ -18,5 +18,15 @@ export class ImageRepository {
     async upload(req: Request, res: Response) {
         const result = await this._imageRepoService.addImages(req.body);
         return result;
+    }
+
+    @httpGet('/')
+    async getFreeImage(req: Request, res: Response) {
+        return await this._imageRepoService.getFreeImages();
+    }
+
+    @httpDelete('/delete')
+    async deleteImages(req: Request, res: Response) {
+        return await this._imageRepoService.deleteOwnImage(req.body);
     }
 }

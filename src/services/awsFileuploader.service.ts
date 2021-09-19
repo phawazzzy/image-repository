@@ -90,4 +90,11 @@ export class AWSFileUploader implements FileUploader {
             return undefined;
         }
     }
+
+    async deleteFileInCloudinary(publicId: string) {
+        cloudinary.v2.uploader.destroy(publicId, (err, result) => {
+            if (err) console.log(err);
+            console.log(`Deleted file ${result}`);
+        });
+    }
 }
